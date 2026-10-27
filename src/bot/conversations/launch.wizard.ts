@@ -465,7 +465,7 @@ async function promptLaunchIndexingMode(
         ? `├─ <b>First Buy Allocation:</b> <code>${firstBuyNum.toFixed(4)} ETH</code>\n`
         : "") +
       `├─ <b>Total Required:</b> <b>~${directTotal} ETH</b>\n` +
-      `└─ <i>Deploys 100% of supply to your Dev Vault; live on Etherscan, Uniswap &amp; Teleth Feed.</i>`,
+      `└─ <i>Deploys 100% of supply to your Dev Vault; live on Etherscan, Uniswap &amp; Pangea Feed.</i>`,
     { parse_mode: "HTML", reply_markup: modeKb }
   );
 

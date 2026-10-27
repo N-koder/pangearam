@@ -52,7 +52,7 @@ async function main() {
 
   // 5. Graceful Shutdown Handlers
   const shutdown = async (signal: string) => {
-    logger.info(`Received ${signal}. Shutting down Teleth gracefully...`);
+    logger.info(`Received ${signal}. Shutting down Pangearam gracefully...`);
     try {
       stopKeepAlive();
       server.close();
@@ -62,7 +62,7 @@ async function main() {
         await bot.stop();
       }
       await prisma.$disconnect();
-      logger.info("Teleth stopped cleanly.");
+      logger.info("Pangearam stopped cleanly.");
       process.exit(0);
     } catch (err) {
       logger.error(`Error during shutdown: ${(err as Error).message}`);
@@ -131,7 +131,7 @@ async function main() {
       logger.error(`[Telegram Polling] Runner task error: ${(err as Error).message}`);
     });
 
-    logger.info(`🤖 Teleth is live: @${botInfo.username}`);
+    logger.info(`🤖 Pangea Omnichain Bot is live: @${botInfo.username}`);
   }
 }
 

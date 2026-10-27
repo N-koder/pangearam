@@ -135,7 +135,7 @@ export class AdminHandler {
       );
 
       let text =
-        `┌───「 📊 <b>TELETH OWNER PANEL</b> 」───\n` +
+        `┌───「 📊 <b>PANGEA OWNER PANEL</b> 」───\n` +
         `│ 🌐 Ethereum Mainnet (1) · 🟢 <b>Online</b>\n` +
         `└────────────────────────────────────────\n\n` +
         `📈 <b>OVERVIEW:</b>\n` +

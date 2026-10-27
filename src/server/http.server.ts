@@ -42,7 +42,7 @@ export function startHttpServer(): {
       res.end(
         JSON.stringify({
           status: "ok",
-          service: "teleth-launchpad-bot",
+          service: "pangearam-launchpad-bot",
           chainId: ENV.CHAIN_ID,
           uptimeSeconds: Math.floor(process.uptime()),
           memoryRssMb: Math.round(process.memoryUsage().rss / 1024 / 1024),
