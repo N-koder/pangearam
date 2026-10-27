@@ -1,0 +1,19 @@
+{
+  "name": "teleth-web",
+  "version": "1.0.0",
+  "description": "Companion website and live token feed for Teleth — Multi-launchpad Telegram bot on Ethereum (Chain ID: 1)",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "teleth",
+    "ethereum",
+    "uniswap-v4",
+    "stokerium",
+    "sender-protocol",
+    "telegram-bot"
+  ],
+  "author": "Teleth",
+  "license": "MIT"
+}

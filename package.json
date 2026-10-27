@@ -1,0 +1,49 @@
+{
+  "name": "pangearam",
+  "version": "1.0.0",
+  "description": "Pangearam - Dedicated Pangea Omnichain Launchpad Telegram Bot on Ethereum Mainnet (pangea.trade • $PANGEA)",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "prisma generate && tsc",
+    "start": "node --max-old-space-size=400 dist/index.js",
+    "start:prod": "npx prisma db push --skip-generate && node --max-old-space-size=400 dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate deploy",
+    "verify": "tsx scripts/verify.ts"
+  },
+  "keywords": [
+    "telegram-bot",
+    "ethereum",
+    "pangea",
+    "layerzero",
+    "oft",
+    "uniswap-v4",
+    "web3",
+    "launchpad"
+  ],
+  "author": "Pangea Team",
+  "license": "MIT",
+  "dependencies": {
+    "@grammyjs/auto-retry": "^2.0.2",
+    "@grammyjs/conversations": "^2.1.1",
+    "@grammyjs/menu": "^1.3.0",
+    "@grammyjs/runner": "^2.0.3",
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "grammy": "^1.34.0",
+    "prisma": "^5.22.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.33.5",
+    "viem": "^2.21.57",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/qrcode": "^1.5.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

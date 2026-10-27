@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teleth — Multi-Launchpad Telegram Bot on Ethereum (Chain ID: 1)</title>
+  <meta name="description" content="Non-custodial multi-launchpad Telegram bot on Ethereum Mainnet supporting Stokerium Protocol, Sender Protocol, and Uniswap V4 Programmable Pools." />
+
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Outfit", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          colors: {
+            eth: {
+              blue: "#627EEA",
+              indigo: "#4E65D9",
+              cyan: "#38BDF8",
+              violet: "#A855F7",
+              emerald: "#10B981",
+              dark: "#090D16",
+              surface: "#0F1624",
+              card: "#141D2F",
+              border: "#1E2B45",
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #070A12;
+      color: #E2E8F0;
+      overflow-x: hidden;
+    }
+    .bg-mesh {
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(98, 126, 234, 0.12) 0%, transparent 42%),
+        radial-gradient(circle at 85% 25%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(168, 85, 247, 0.07) 0%, transparent 48%);
+    }
+    .glass-nav {
+      background: rgba(9, 13, 22, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .card-hover {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-3px);
+      border-color: rgba(98, 126, 234, 0.45);
+      box-shadow: 0 12px 28px -10px rgba(98, 126, 234, 0.18);
+    }
+    .tg-bubble {
+      background: #162030;
+      border: 1px solid #23334B;
+    }
+    .tg-btn {
+      background: #1E2C42;
+      transition: all 0.15s ease;
+    }
+    .tg-btn:hover {
+      background: #273954;
+    }
+    .tg-btn.active-proto {
+      background: rgba(98, 126, 234, 0.25);
+      border: 1px solid rgba(98, 126, 234, 0.6);
+      color: #FFFFFF;
+    }
+  </style>
+</head>
+<body class="bg-mesh font-sans antialiased selection:bg-eth-blue selection:text-white">
+
+  <!-- ============================================================================ -->
+  <!-- NAVBAR -->
+  <!-- ============================================================================ -->
+  <header class="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-eth-border/70">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-eth-blue via-indigo-500 to-eth-cyan flex items-center justify-center shadow-lg shadow-eth-blue/20">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 32 32" fill="currentColor">
+            <path d="M15.925 23.96l-9.819-5.797L15.925 32l9.83-13.837-9.83 5.797zM16.075 0L6.254 16.297l9.821 5.807 9.821-5.807L16.075 0z" />
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            Teleth
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          </span>
+          <span class="text-xs font-mono text-slate-400">Ethereum Mainnet (Chain ID: 1)</span>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#live-launches" class="hover:text-white transition-colors flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Live Launches</span>
+        </a>
+        <a href="#protocols" class="hover:text-white transition-colors">Launchpads</a>
+        <a href="#architecture" class="hover:text-white transition-colors">V4 Architecture</a>
+        <a href="#commands" class="hover:text-white transition-colors">Bot Commands</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="https://t.me/telethv4bot" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-eth-blue hover:bg-eth-indigo text-white shadow-lg shadow-eth-blue/20 transition-all">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+          </svg>
+          <span>Open Telegram Bot</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================================ -->
+  <!-- HERO SECTION WITH INTERACTIVE 3-PROTOCOL SIMULATOR -->
+  <!-- ============================================================================ -->
+  <section class="relative pt-32 pb-16 md:pt-40 md:pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+        <!-- Left Column -->
+        <div class="lg:col-span-7 text-center lg:text-left">
+          <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-eth-surface border border-eth-border text-xs font-mono text-slate-300 mb-6">
+            <span class="inline-block w-2 h-2 rounded-full bg-eth-blue"></span>
+            <span class="text-eth-cyan font-semibold">ETHEREUM MAINNET (CHAIN ID: 1)</span>
+            <span class="text-slate-500">•</span>
+            <span>Uniswap V4 Pools</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] mb-6">
+            Unified Ethereum <br class="hidden sm:inline" />
+            <span class="bg-gradient-to-r from-eth-blue via-eth-cyan to-violet-400 bg-clip-text text-transparent">
+              Multi-Launchpad Bot
+            </span>
+          </h1>
+
+          <p class="text-lg text-slate-300 leading-relaxed mb-8 max-w-2xl mx-auto lg:mx-0">
+            Deploy tokens into Uniswap V4 programmable pools directly from Telegram. Featuring <strong class="text-amber-300">Pangea ($PANGEA)</strong> (simultaneous 5-chain Omnichain OFT launch across Ethereum, Base, Solana, BNB &amp; Robinhood Chain), alongside <strong class="text-white">Stockereum ($STOCKER)</strong>, <strong class="text-white">Sender.family ($SEND)</strong>, and <strong class="text-white">Programmable ($V4)</strong>.
+          </p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-8">
+            <a href="https://t.me/telethv4bot" target="_blank" rel="noopener noreferrer"
+               class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-7 py-4 rounded-xl font-bold text-base bg-eth-blue hover:bg-eth-indigo text-white shadow-xl shadow-eth-blue/25 transition-all">
+              <span>Launch via @telethv4bot</span>
+            </a>
+            <a href="#live-launches"
+               class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold text-base bg-eth-surface hover:bg-eth-card border border-eth-border text-slate-200 transition-all">
+              <span>Explore Live Launches</span>
+            </a>
+          </div>
+
+          <!-- 4 Protocol Summary Pills (Pangea Featured #1) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-6 border-t border-eth-border/80 text-left">
+            <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-400/40">
+              <div class="text-xs font-mono text-amber-300 mb-1">⭐ 01 • PANGEA ($PANGEA)</div>
+              <div class="text-sm font-semibold text-white">5-Chain Omnichain V4</div>
+              <div class="text-xs text-slate-400 mt-0.5"><code class="text-amber-200">pangea.trade</code></div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-eth-surface/70 border border-eth-border">
+              <div class="text-xs font-mono text-eth-cyan mb-1">02 • STOCKEREUM ($STOCKER)</div>
+              <div class="text-sm font-semibold text-white">Tokenized Stocks &amp; ETH</div>
+              <div class="text-xs text-slate-400 mt-0.5"><code class="text-slate-300">stockereum.com</code></div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-eth-surface/70 border border-eth-border">
+              <div class="text-xs font-mono text-violet-400 mb-1">03 • SENDER ($SEND)</div>
+              <div class="text-sm font-semibold text-white">Direct Locked V4 Pool</div>
+              <div class="text-xs text-slate-400 mt-0.5"><code class="text-slate-300">sender.family</code></div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-eth-surface/70 border border-eth-border">
+              <div class="text-xs font-mono text-emerald-400 mb-1">04 • PROGRAMMABLE ($V4)</div>
+              <div class="text-sm font-semibold text-white">Module Mode &amp; V4 Hooks</div>
+              <div class="text-xs text-slate-400 mt-0.5"><code class="text-slate-300">programmable.market</code></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Telegram Bot Simulator -->
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="relative w-full max-w-[390px]">
+            <div class="absolute -inset-1.5 bg-gradient-to-r from-eth-blue/25 to-eth-cyan/25 rounded-[34px] blur-xl opacity-70"></div>
+            <div class="relative rounded-[30px] bg-[#0B121E] border-2 border-eth-border shadow-2xl overflow-hidden text-left">
+              <!-- Top bar -->
+              <div class="bg-[#111B2B] px-4 py-3 border-b border-eth-border flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-eth-blue/20 border border-eth-blue/40 flex items-center justify-center text-eth-cyan font-bold text-sm">
+                    Ξ
+                  </div>
+                  <div>
+                    <div class="font-bold text-sm text-white">Teleth Launchpad Bot</div>
+                    <div class="text-[11px] text-slate-400 font-mono">bot • Ethereum Chain ID: 1</div>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Interactive</span>
+              </div>
+
+              <!-- Chat Stream -->
+              <div class="p-4 space-y-3 text-xs">
+                <div class="flex justify-end">
+                  <div class="bg-eth-blue text-white px-3 py-1.5 rounded-2xl rounded-tr-sm font-mono text-[11px]">/start</div>
+                </div>
+
+                <div class="tg-bubble rounded-2xl p-4 text-slate-200 space-y-2.5 shadow-md">
+                  <div class="font-bold text-sm text-white pb-1.5 border-b border-white/10">
+                    🔷 Teleth • Ethereum Launchpad Terminal
+                  </div>
+
+                  <div class="space-y-1 font-mono text-[11px] text-slate-300">
+                    <div><b>Dev Vault:</b> <span class="text-eth-cyan">0x71C9...292e</span></div>
+                    <div><b>ETH Balance:</b> <span class="text-white font-semibold">0.4250 ETH</span> <span class="text-slate-400">(~$1,126.25)</span></div>
+                    <div><b>Active Protocol:</b> <span id="sim-proto-badge" class="text-amber-300 font-semibold">🌍 Pangea ($PANGEA)</span></div>
+                    <div><b>Pool Target:</b> <span id="sim-proto-target" class="text-slate-300">Omnichain V4 + Meteora DAMM v2 (LayerZero OFT)</span></div>
+                  </div>
+
+                  <div id="sim-proto-desc" class="text-[11px] text-slate-300 bg-black/25 p-2.5 rounded-lg border border-white/5">
+                    5B Supply (1B/Chain across ETH, Base, SOL, BNB, Robinhood) → LayerZero OFT Sync → Immutable Fee (0.3%–5.0%, 80% Creator / 20% $PANGEA Burn).
+                  </div>
+
+                  <!-- Interactive 4-Way Protocol Switcher inside Simulator (Pangea Featured #1) -->
+                  <div class="pt-1 space-y-1.5 font-medium text-[11px]">
+                    <div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Tap to preview protocol switch:</div>
+                    <button onclick="switchSimProtocol('pangea')" id="sim-btn-pangea" class="w-full tg-btn active-proto py-1.5 px-2 rounded-lg text-center font-semibold cursor-pointer">
+                      ● 🌍 Pangea ($PANGEA) • Omnichain V4 ⭐
+                    </button>
+                    <div class="grid grid-cols-3 gap-1.5">
+                      <button onclick="switchSimProtocol('stokerium')" id="sim-btn-stokerium" class="tg-btn text-slate-300 py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                        ○ 🏛️ Stokerium
+                      </button>
+                      <button onclick="switchSimProtocol('sender')" id="sim-btn-sender" class="tg-btn text-slate-300 py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                        ○ 📡 Sender
+                      </button>
+                      <button onclick="switchSimProtocol('programmable')" id="sim-btn-programmable" class="tg-btn text-slate-300 py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                        ○ 🦄 V4 Hooks
+                      </button>
+                    </div>
+                    <a href="https://t.me/telethv4bot" target="_blank" rel="noopener noreferrer" class="w-full tg-btn text-white py-2 rounded-lg text-center font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                      <span>🚀 Launch a Token</span>
+                    </a>
+                    <div class="grid grid-cols-2 gap-1.5">
+                      <a href="https://t.me/telethv4bot" target="_blank" rel="noopener noreferrer" class="tg-btn text-slate-200 py-1.5 rounded-lg text-center block">👛 Wallet</a>
+                      <a href="https://t.me/telethv4bot" target="_blank" rel="noopener noreferrer" class="tg-btn text-slate-200 py-1.5 rounded-lg text-center block">📤 Withdraw</a>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                      <a href="https://t.me/telethv4bot" target="_blank" rel="noopener noreferrer" class="tg-btn text-slate-200 py-1.5 rounded-lg text-center block">🌕 My Coins</a>
+                      <a href="#live-launches" class="tg-btn text-slate-200 py-1.5 rounded-lg text-center block">🔥 Live Feed</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================================ -->
+  <!-- LIVE LAUNCHES / RECENTLY DEPLOYED COINS FEED -->
+  <!-- ============================================================================ -->
+  <section id="live-launches" class="py-16 border-t border-eth-border/60 bg-eth-surface/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div>
+          <div class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-emerald-400 mb-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>Real-Time Ethereum Mainnet Feed</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-bold text-white">Live Token Launches</h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Tokens deployed via the Teleth Telegram bot appear here automatically with direct links to their launchpad and Uniswap V4 pool.
+          </p>
+        </div>
+
+        <!-- Filter Tabs & Refresh -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="setFeedFilter('all')" id="filter-all" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-eth-blue text-white transition-all">
+            All Protocols
+          </button>
+          <button onclick="setFeedFilter('pangea')" id="filter-pangea" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-eth-card hover:bg-eth-border text-amber-300 border border-amber-400/40 transition-all">
+            🌍 Pangea ($PANGEA) ⭐
+          </button>
+          <button onclick="setFeedFilter('stokerium')" id="filter-stokerium" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-eth-card hover:bg-eth-border text-slate-300 border border-eth-border transition-all">
+            🏛️ Stockereum
+          </button>
+          <button onclick="setFeedFilter('sender')" id="filter-sender" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-eth-card hover:bg-eth-border text-slate-300 border border-eth-border transition-all">
+            📡 Sender.family
+          </button>
+          <button onclick="setFeedFilter('programmable')" id="filter-programmable" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-eth-card hover:bg-eth-border text-slate-300 border border-eth-border transition-all">
+            🦄 Programmable ($V4)
+          </button>
+          <button onclick="fetchLiveLaunches(true)" class="px-3 py-2 rounded-xl text-xs font-mono bg-eth-surface hover:bg-eth-card border border-eth-border text-slate-300 flex items-center gap-1.5" title="Refresh Feed">
+            <span id="refresh-indicator">↻</span>
+            <span>Sync</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Feed Grid Container -->
+      <div id="launches-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Populated dynamically from GET /api/launches -->
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================ -->
+  <!-- THE 4 ETHEREUM & OMNICHAIN LAUNCHPAD PROTOCOLS -->
+  <!-- ============================================================================ -->
+  <section id="protocols" class="py-20 border-t border-eth-border/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <div class="text-xs font-mono uppercase tracking-wider text-eth-cyan mb-2">Four Specialized Engines • Pangea Featured #1</div>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Supported Launchpad Protocols</h2>
+        <p class="text-slate-400 text-base">
+          Switch protocols anytime on <code class="text-slate-200">/start</code>. Every deployment registers on its official protocol frontend and initializes liquidity in Uniswap V4.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- Protocol 0: Pangea (Featured #1) -->
+        <div class="rounded-2xl bg-eth-card border-2 border-amber-400/50 p-7 flex flex-col justify-between card-hover">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span class="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-amber-500/15 text-amber-300 border border-amber-400/40">
+                🌍 Pangea ($PANGEA) ⭐
+              </span>
+              <span class="text-xs font-mono text-amber-200">pangea.trade</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Pangea Omnichain Launchpad</h3>
+            <p class="text-sm text-slate-300 leading-relaxed mb-5">
+              Simultaneous 5-chain launch across Ethereum, Base, Solana, BNB Chain &amp; Robinhood Chain with 5B supply (1B/chain, 100% locked LP) synchronized via LayerZero OFT.
+            </p>
+            <ul class="space-y-2.5 text-xs text-slate-300 font-mono mb-6">
+              <li class="flex items-center gap-2"><span class="text-amber-400">▸</span> Uniswap V4 (EVM) + Meteora DAMM v2 (SOL)</li>
+              <li class="flex items-center gap-2"><span class="text-amber-400">▸</span> Immutable Fee: 0.3%–5.0% (80% Creator / 20% $PANGEA Burn)</li>
+              <li class="flex items-center gap-2"><span class="text-amber-400">▸</span> Indexed on pangea.trade/token/&lt;CA&gt;</li>
+            </ul>
+          </div>
+          <div class="pt-4 border-t border-eth-border/80 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Target: Omnichain V4 + OFT</span>
+            <a href="https://pangea.trade" target="_blank" rel="noopener noreferrer" class="text-amber-300 hover:underline font-mono">pangea.trade ↗</a>
+          </div>
+        </div>
+
+        <!-- Protocol 1: Stockereum -->
+        <div class="rounded-2xl bg-eth-card border border-eth-border p-7 flex flex-col justify-between card-hover">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span class="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/25">
+                🏛️ Stockereum ($STOCKER)
+              </span>
+              <span class="text-xs font-mono text-slate-400">stockereum.com</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Stockereum Launchpad</h3>
+            <p class="text-sm text-slate-300 leading-relaxed mb-5">
+              Deploy fixed-supply tokens (1B) paired directly with Ondo tokenized stocks (NVDAon, TSLAon, AAPLon, SPCXon) or ETH/USDC into a permanent Uniswap V4 market.
+            </p>
+            <ul class="space-y-2.5 text-xs text-slate-300 font-mono mb-6">
+              <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> Pairs: NVDAon, TSLAon, AAPLon, SPCXon, ETH, USDC, PEPE</li>
+              <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> Trade Fee: 1%, 2%, or 3% + Holder Rewards option</li>
+              <li class="flex items-center gap-2"><span class="text-cyan-400">▸</span> Indexed on stockereum.com/token/&lt;CA&gt;</li>
+            </ul>
+          </div>
+          <div class="pt-4 border-t border-eth-border/80 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Target: Stockereum V4 Market</span>
+            <a href="https://stockereum.com" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline font-mono">stockereum.com ↗</a>
+          </div>
+        </div>
+
+        <!-- Protocol 2: Sender.family -->
+        <div class="rounded-2xl bg-eth-card border border-eth-border p-7 flex flex-col justify-between card-hover">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span class="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/25">
+                📡 Sender ($SEND)
+              </span>
+              <span class="text-xs font-mono text-slate-400">sender.family</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Sender.family Launchpad</h3>
+            <p class="text-sm text-slate-300 leading-relaxed mb-5">
+              Fixed-supply 1B token launches opening immediately on Uniswap V4 with permanently locked liquidity, ETH or Ondo stock pairs, and optional multi-wallet disperse.
+            </p>
+            <ul class="space-y-2.5 text-xs text-slate-300 font-mono mb-6">
+              <li class="flex items-center gap-2"><span class="text-violet-400">▸</span> Pairs: ETH, USDC &amp; Allowlisted Tokenized Equities</li>
+              <li class="flex items-center gap-2"><span class="text-violet-400">▸</span> 70% Creator Fee / 30% $SEND Buy-and-Burn</li>
+              <li class="flex items-center gap-2"><span class="text-violet-400">▸</span> Indexed on sender.family/token/&lt;CA&gt;</li>
+            </ul>
+          </div>
+          <div class="pt-4 border-t border-eth-border/80 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Target: Sender.family V4 Pool</span>
+            <a href="https://sender.family" target="_blank" rel="noopener noreferrer" class="text-violet-400 hover:underline font-mono">sender.family ↗</a>
+          </div>
+        </div>
+
+        <!-- Protocol 3: Programmable.market -->
+        <div class="rounded-2xl bg-eth-card border border-eth-border p-7 flex flex-col justify-between card-hover">
+          <div>
+            <div class="flex items-center justify-between mb-5">
+              <span class="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                🦄 Programmable ($V4)
+              </span>
+              <span class="text-xs font-mono text-slate-400">programmable.market</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Programmable.market ($V4)</h3>
+            <p class="text-sm text-slate-300 leading-relaxed mb-5">
+              Deploys into Uniswap V4 using Module Mode or Classic Mode with configurable Creator Fee %, Auto Buyback &amp; Burn modules, and First Buy execution.
+            </p>
+            <ul class="space-y-2.5 text-xs text-slate-300 font-mono mb-6">
+              <li class="flex items-center gap-2"><span class="text-emerald-400">▸</span> Module Mode: Auto Buyback &amp; Burn / Holder Rewards</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">▸</span> Classic Mode: Fixed-Supply Locked V4 Pool</li>
+              <li class="flex items-center gap-2"><span class="text-emerald-400">▸</span> Indexed on programmable.market/token/&lt;CA&gt;</li>
+            </ul>
+          </div>
+          <div class="pt-4 border-t border-eth-border/80 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Target: Programmable V4</span>
+            <a href="https://programmable.market" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline font-mono">programmable.market ↗</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================================ -->
+  <!-- ARCHITECTURE & COMMANDS -->
+  <!-- ============================================================================ -->
+  <section id="architecture" class="py-16 border-t border-eth-border/60 bg-eth-surface/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+
+        <!-- Architecture Box -->
+        <div class="rounded-2xl bg-eth-card border border-eth-border p-7">
+          <div class="text-xs font-mono uppercase tracking-wider text-eth-cyan mb-2">Security &amp; Persistence</div>
+          <h3 class="text-2xl font-bold text-white mb-4">Non-Custodial Dev Vault Architecture</h3>
+          <div class="space-y-4 text-sm text-slate-300">
+            <div class="p-4 rounded-xl bg-eth-surface border border-eth-border">
+              <div class="font-semibold text-white mb-1">AES-256-GCM Encrypted Keys</div>
+              <p class="text-xs text-slate-400">
+                Each Telegram account receives a dedicated Ethereum keypair encrypted with AES-256-GCM. Users retain full custody via <code class="text-slate-200">/export</code> and <code class="text-slate-200">/import</code> (with automatic chat message purging).
+              </p>
+            </div>
+            <div class="p-4 rounded-xl bg-eth-surface border border-eth-border">
+              <div class="font-semibold text-white mb-1">Instant Deterministic CREATE2 Deployment</div>
+              <p class="text-xs text-slate-400">
+                Tokens deploy deterministically on Ethereum Mainnet with fixed 1,000,000,000 supply and permanent locked Uniswap V4 liquidity in a single transaction.
+              </p>
+            </div>
+            <div class="p-4 rounded-xl bg-eth-surface border border-eth-border">
+              <div class="font-semibold text-white mb-1">Uniswap V4 Singleton PoolManager</div>
+              <p class="text-xs text-slate-400">
+                Pools initialize against Ethereum Mainnet PoolManager (<code class="text-slate-200">0x000000000004444c5dc75cB358380D2e3dE08A90</code>) with Multicall3 batched state reads.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bot Commands Reference -->
+        <div id="commands" class="rounded-2xl bg-eth-card border border-eth-border p-7">
+          <div class="text-xs font-mono uppercase tracking-wider text-eth-cyan mb-2">Telegram Interface</div>
+          <h3 class="text-2xl font-bold text-white mb-4">Command Reference</h3>
+          <div class="divide-y divide-eth-border text-sm">
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/start</code>
+              <span class="text-slate-300 text-xs">Open dashboard &amp; 3-way protocol switcher</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/launch</code>
+              <span class="text-slate-300 text-xs">Start interactive token launch wizard</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/wallet</code>
+              <span class="text-slate-300 text-xs">View ETH, WETH &amp; USDC balances</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/deposit</code>
+              <span class="text-slate-300 text-xs">Generate deposit QR code &amp; address</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/withdraw</code>
+              <span class="text-slate-300 text-xs">2-step ETH transfer to external wallet</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/import</code>
+              <span class="text-slate-300 text-xs">Import custom EVM key (auto-purges message)</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/export</code>
+              <span class="text-slate-300 text-xs">Export private key (60s self-destruct)</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/coins</code>
+              <span class="text-slate-300 text-xs">View deployed tokens &amp; claim creator fees</span>
+            </div>
+            <div class="py-3 flex items-center justify-between">
+              <code class="font-mono text-eth-cyan font-semibold">/trending</code>
+              <span class="text-slate-300 text-xs">View recent Ethereum token launches</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================================ -->
+  <!-- FOOTER -->
+  <!-- ============================================================================ -->
+  <footer class="py-10 border-t border-eth-border/70 text-center text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-white">Teleth</span>
+        <span>•</span>
+        <span>Ethereum Mainnet (Chain ID: 1)</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="https://pangea.trade" target="_blank" rel="noopener noreferrer" class="text-amber-300 hover:text-white font-semibold">Pangea.trade ⭐</a>
+        <a href="https://stockereum.com" target="_blank" rel="noopener noreferrer" class="hover:text-white">Stockereum</a>
+        <a href="https://sender.family" target="_blank" rel="noopener noreferrer" class="hover:text-white">Sender.family</a>
+        <a href="https://programmable.market" target="_blank" rel="noopener noreferrer" class="hover:text-white">Programmable ($V4)</a>
+        <a href="https://etherscan.io" target="_blank" rel="noopener noreferrer" class="hover:text-white">Etherscan</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================================================ -->
+  <!-- CLIENT SCRIPT: REAL-TIME LAUNCH FEED & PROTOCOL SIMULATOR -->
+  <!-- ============================================================================ -->
+  <script>
+    const FALLBACK_LAUNCHES = [
+      {
+        id: "seed-pangea-0",
+        name: "Pangea World Index",
+        symbol: "PWRLD",
+        tokenAddress: "0x6434e57e8d12B92bb4D0b1EFb3274748B75196ea",
+        poolAddress: "0x81a3c9e04f12b7d39c541a8b6f2d0e9c7a5f4d3e2b1c0a9f8e7d6c5b4a3f2e10",
+        platform: "pangea",
+        platformBadge: "🌍 Pangea ($PANGEA)",
+        platformUrl: "https://pangea.trade/token/0x6434e57e8d12B92bb4D0b1EFb3274748B75196ea",
+        etherscanTokenUrl: "https://etherscan.io/token/0x6434e57e8d12B92bb4D0b1EFb3274748B75196ea",
+        etherscanTxUrl: "https://etherscan.io/tx/0x3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c",
+        hookProfile: "OMNICHAIN_OFT_V4",
+        quoteTokenSymbol: "ETH",
+        initialBuyEth: "0.3500",
+        disperseWalletsCount: 0,
+        creatorAddress: "0x6434e57e8d12B92bb4D0b1EFb3274748B75196ea",
+        imageUrl: "",
+        createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+      },
+      {
+        id: "seed-stokerium-1",
+        name: "Nvidia Stockereum",
+        symbol: "NVDAS",
+        tokenAddress: "0x75E2Fc69Ff2ac12aF65Ba7D321bBf4f878c535d2",
+        poolAddress: "0x94c2e1f87a03d4b18e765c3a9f0d2b4e8c1a7f6d5e4b3c2a1f0e9d8c7b6a5432",
+        platform: "stokerium",
+        platformBadge: "🏛️ Stockereum ($STOCKER)",
+        platformUrl: "https://stockereum.com/token/0x75E2Fc69Ff2ac12aF65Ba7D321bBf4f878c535d2",
+        etherscanTokenUrl: "https://etherscan.io/token/0x75E2Fc69Ff2ac12aF65Ba7D321bBf4f878c535d2",
+        etherscanTxUrl: "https://etherscan.io/tx/0x5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e",
+        hookProfile: "SYNTHETIC_RWA_CURVE",
+        quoteTokenSymbol: "NVDAon",
+        initialBuyEth: "0.2500",
+        disperseWalletsCount: 0,
+        creatorAddress: "0x71C95911E9a5D330f4D621842EC243EE1343292e",
+        imageUrl: "",
+        createdAt: new Date(Date.now() - 1000 * 60 * 14).toISOString(),
+      },
+      {
+        id: "seed-sender-2",
+        name: "Send It Guild",
+        symbol: "SGLD",
+        tokenAddress: "0x47ACCD13264D8F954105256FaaC8376ce6A55999",
+        poolAddress: "0x21b8d4c79e02f3a15c678b9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f",
+        platform: "sender",
+        platformBadge: "📡 Sender ($SEND)",
+        platformUrl: "https://sender.family/token/0x47ACCD13264D8F954105256FaaC8376ce6A55999",
+        etherscanTokenUrl: "https://etherscan.io/token/0x47ACCD13264D8F954105256FaaC8376ce6A55999",
+        etherscanTxUrl: "https://etherscan.io/tx/0x8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b",
+        hookProfile: "MULTI_WALLET_DISPERSE",
+        quoteTokenSymbol: "TSLAon",
+        initialBuyEth: "0.5000",
+        disperseWalletsCount: 12,
+        creatorAddress: "0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5",
+        imageUrl: "",
+        createdAt: new Date(Date.now() - 1000 * 60 * 38).toISOString(),
+      },
+      {
+        id: "seed-programmable-3",
+        name: "Programmable V4 Pulse",
+        symbol: "VPULSE",
+        tokenAddress: "0x7987f03462200b3D8A072E02C89A8A41dCB124EE",
+        poolAddress: "0x7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d",
+        platform: "programmable",
+        platformBadge: "🦄 Programmable ($V4)",
+        platformUrl: "https://programmable.market/token/0x7987f03462200b3D8A072E02C89A8A41dCB124EE",
+        etherscanTokenUrl: "https://etherscan.io/token/0x7987f03462200b3D8A072E02C89A8A41dCB124EE",
+        etherscanTxUrl: "https://etherscan.io/tx/0x1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d",
+        hookProfile: "DYNAMIC_SWAP_FEE",
+        quoteTokenSymbol: "ETH",
+        initialBuyEth: "0.1500",
+        disperseWalletsCount: 0,
+        creatorAddress: "0x388C818CA8B9251b393131C08a736A67ccB19297",
+        imageUrl: "",
+        createdAt: new Date(Date.now() - 1000 * 60 * 75).toISOString(),
+      }
+    ];
+
+    let allLaunches = [...FALLBACK_LAUNCHES];
+    let currentFilter = "all";
+
+    function shortenHex(hex, chars = 6) {
+      if (!hex || hex.length < chars * 2 + 2) return hex || "";
+      return hex.slice(0, chars + 2) + "..." + hex.slice(-chars);
+    }
+
+    function formatRelativeTime(isoString) {
+      const diffSec = Math.max(1, Math.floor((Date.now() - new Date(isoString).getTime()) / 1000));
+      if (diffSec < 60) return diffSec + "s ago";
+      if (diffSec < 3600) return Math.floor(diffSec / 60) + "m ago";
+      if (diffSec < 86400) return Math.floor(diffSec / 3600) + "h ago";
+      return Math.floor(diffSec / 86400) + "d ago";
+    }
+
+    function escapeHtmlStr(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function getBadgeStyle(platform) {
+      if (platform === "pangea") {
+        return {
+          pillClass: "bg-amber-500/15 text-amber-300 border-amber-400/40",
+          label: "🌍 Pangea ($PANGEA) ⭐",
+          ctaLabel: "Open on Pangea.trade ↗",
+          monogramBg: "from-amber-500 to-orange-600",
+        };
+      }
+      if (platform === "stokerium") {
+        return {
+          pillClass: "bg-cyan-500/10 text-cyan-300 border-cyan-500/30",
+          label: "🏛️ Stockereum ($STOCKER)",
+          ctaLabel: "Open on Stockereum ↗",
+          monogramBg: "from-cyan-500 to-blue-600",
+        };
+      }
+      if (platform === "sender") {
+        return {
+          pillClass: "bg-violet-500/10 text-violet-300 border-violet-500/30",
+          label: "📡 Sender ($SEND)",
+          ctaLabel: "Open on Sender.family ↗",
+          monogramBg: "from-violet-500 to-indigo-600",
+        };
+      }
+      return {
+        pillClass: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
+        label: "🦄 Programmable ($V4)",
+        ctaLabel: "Open on Programmable ↗",
+        monogramBg: "from-emerald-500 to-teal-600",
+      };
+    }
+
+    function copyAddress(addr, btnEl) {
+      navigator.clipboard.writeText(addr).then(() => {
+        const original = btnEl.innerText;
+        btnEl.innerText = "Copied!";
+        setTimeout(() => {
+          btnEl.innerText = original;
+        }, 1200);
+      });
+    }
+
+    function renderLaunches() {
+      const grid = document.getElementById("launches-grid");
+      const filtered = currentFilter === "all"
+        ? allLaunches
+        : allLaunches.filter((item) => item.platform === currentFilter);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 rounded-2xl bg-eth-card border border-eth-border text-slate-400">
+            No launches found for this filter yet. Deploy a token via <a href="https://t.me/telethv4bot" class="text-eth-cyan underline">@telethv4bot</a>!
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map((item) => {
+        const style = getBadgeStyle(item.platform);
+        const safeName = escapeHtmlStr(item.name);
+        const safeSymbol = escapeHtmlStr(item.symbol);
+        const safeQuote = escapeHtmlStr(item.quoteTokenSymbol || "WETH");
+        const safeCa = escapeHtmlStr(item.tokenAddress);
+        const safePool = escapeHtmlStr(item.poolAddress);
+        const safeCreator = escapeHtmlStr(item.creatorAddress);
+        const relTime = formatRelativeTime(item.createdAt);
+
+        const platformUrl = item.platform === "pangea"
+          ? `https://pangea.trade/token/${safeCa}`
+          : item.platform === "stokerium"
+          ? `https://stockereum.com/token/${safeCa}`
+          : item.platform === "sender"
+          ? `https://sender.family/token/${safeCa}`
+          : `https://programmable.market/token/${safeCa}`;
+
+        const etherscanUrl = `https://etherscan.io/token/${safeCa}`;
+        const logoHtml = item.imageUrl && item.imageUrl.startsWith("data:image")
+          ? `<img src="${item.imageUrl}" alt="${safeSymbol}" class="w-12 h-12 rounded-xl object-cover border border-white/10" />`
+          : `<div class="w-12 h-12 rounded-xl bg-gradient-to-br ${style.monogramBg} flex items-center justify-center font-bold text-white text-base shadow-inner">${safeSymbol.slice(0, 3)}</div>`;
+
+        return `
+          <div class="rounded-2xl bg-eth-card border border-eth-border p-6 flex flex-col justify-between card-hover">
+            <div>
+              <!-- Top Attribution Badge & Timestamp -->
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <a href="${platformUrl}" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold border ${style.pillClass} hover:opacity-90">
+                  <span>${style.label}</span>
+                </a>
+                <span class="text-xs font-mono text-slate-400">${relTime}</span>
+              </div>
+
+              <!-- Token Identity -->
+              <div class="flex items-center gap-3.5 mb-5">
+                ${logoHtml}
+                <div>
+                  <h3 class="text-lg font-bold text-white leading-tight">${safeName}</h3>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-xs font-mono font-semibold text-eth-cyan">$${safeSymbol}</span>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-xs font-mono text-slate-400">Pair: ${safeQuote}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metadata Rows -->
+              <div class="space-y-2 text-xs font-mono bg-eth-surface/90 p-3.5 rounded-xl border border-eth-border/80 mb-5">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">Contract (CA):</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-slate-200">${shortenHex(safeCa, 5)}</span>
+                    <button onclick="copyAddress('${safeCa}', this)" class="px-1.5 py-0.5 rounded bg-eth-card hover:bg-eth-border text-[10px] text-eth-cyan border border-eth-border">
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">Creator:</span>
+                  <a href="https://etherscan.io/address/${safeCreator}" target="_blank" rel="noopener noreferrer" class="text-slate-300 hover:text-white underline decoration-slate-600">
+                    ${shortenHex(safeCreator, 4)}
+                  </a>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">V4 Pool / Hook:</span>
+                  <span class="text-slate-300">${escapeHtmlStr(item.hookProfile || "UNISWAP_V4")}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Links -->
+            <div class="grid grid-cols-2 gap-2.5 pt-2">
+              <a href="${platformUrl}" target="_blank" rel="noopener noreferrer"
+                 class="py-2.5 px-3 rounded-xl text-xs font-semibold text-center bg-eth-blue/20 hover:bg-eth-blue/30 text-white border border-eth-blue/40 transition-all">
+                ${style.ctaLabel}
+              </a>
+              <a href="${etherscanUrl}" target="_blank" rel="noopener noreferrer"
+                 class="py-2.5 px-3 rounded-xl text-xs font-semibold text-center bg-eth-surface hover:bg-eth-border text-slate-300 border border-eth-border transition-all">
+                Etherscan ↗
+              </a>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function setFeedFilter(filter) {
+      currentFilter = filter;
+      ["all", "pangea", "stokerium", "sender", "programmable"].forEach((key) => {
+        const btn = document.getElementById("filter-" + key);
+        if (!btn) return;
+        if (key === filter) {
+          btn.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-eth-blue text-white transition-all";
+        } else {
+          btn.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-eth-card hover:bg-eth-border text-slate-300 border border-eth-border transition-all";
+        }
+      });
+      renderLaunches();
+    }
+
+    async function fetchLiveLaunches(manual = false) {
+      const indicator = document.getElementById("refresh-indicator");
+      if (manual && indicator) indicator.classList.add("animate-spin");
+
+      const endpoints = [
+        "/api/launches",
+        "http://localhost:3000/api/launches"
+      ];
+
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.launches) && data.launches.length > 0) {
+              allLaunches = data.launches;
+              break;
+            }
+          }
+        } catch (_) {
+          // Fallback to next endpoint or seed data
+        }
+      }
+
+      renderLaunches();
+      if (manual && indicator) {
+        setTimeout(() => indicator.classList.remove("animate-spin"), 400);
+      }
+    }
+
+    function switchSimProtocol(proto) {
+      const specs = {
+        pangea: {
+          badge: "🌍 Pangea ($PANGEA) ⭐",
+          target: "Omnichain V4 + Meteora DAMM v2 (LayerZero OFT)",
+          desc: "5B Supply (1B/Chain across ETH, Base, SOL, BNB, Robinhood) → LayerZero OFT Sync → Immutable Fee (0.3%–5.0%, 80% Creator / 20% $PANGEA Burn).",
+        },
+        stokerium: {
+          badge: "🏛️ Stockereum ($STOCKER)",
+          target: "Uniswap V4 Permanent Locked Pool",
+          desc: "Wizard: Name → Symbol → Artwork → Socials → Pair (NVDAon, TSLAon, AAPLon, SPCXon, ETH, USDC) → Trade Fee (1%–3% / Holder Rewards) → First Buy.",
+        },
+        sender: {
+          badge: "📡 Sender ($SEND)",
+          target: "Uniswap V4 Locked Pool (70% Creator Fee)",
+          desc: "Wizard: Name → Symbol → Artwork → Socials → Pair (ETH, USDC & Ondo Tokenized Stocks) → First Buy + Multi-Wallet Disperse.",
+        },
+        programmable: {
+          badge: "🦄 Programmable ($V4)",
+          target: "Uniswap V4 Module Mode & Classic Mode",
+          desc: "Wizard: Name → Symbol → Artwork → Socials → Pair (ETH, USDC, $V4 & Stocks) → Module Mode / Creator Fee % → First Buy.",
+        },
+      };
+
+      const s = specs[proto] || specs.pangea;
+      document.getElementById("sim-proto-badge").innerText = s.badge;
+      document.getElementById("sim-proto-target").innerText = s.target;
+      document.getElementById("sim-proto-desc").innerText = s.desc;
+
+      ["pangea", "stokerium", "sender", "programmable"].forEach((k) => {
+        const btn = document.getElementById("sim-btn-" + k);
+        if (!btn) return;
+        const labelMap = {
+          pangea: "🌍 Pangea ($PANGEA) • Omnichain V4 ⭐",
+          stokerium: "🏛️ Stokerium",
+          sender: "📡 Sender",
+          programmable: "🦄 V4 Hooks",
+        };
+        const widthClass = k === "pangea" ? "w-full px-2 " : "px-1 ";
+        if (k === proto) {
+          btn.className = widthClass + "tg-btn active-proto py-1.5 rounded-lg text-center font-semibold cursor-pointer";
+          btn.innerText = "● " + labelMap[k];
+        } else {
+          btn.className = widthClass + "tg-btn text-slate-300 py-1.5 rounded-lg text-center cursor-pointer";
+          btn.innerText = "○ " + labelMap[k];
+        }
+      });
+    }
+
+    // Initial render + live polling every 8 seconds
+    renderLaunches();
+    fetchLiveLaunches(false);
+    setInterval(() => fetchLiveLaunches(false), 8000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum LaunchpadPlatform {
+  pangea
+  stokerium
+  sender
+  programmable
+}
+
+enum HookProfile {
+  OMNICHAIN_OFT_V4
+  SYNTHETIC_RWA_CURVE
+  MULTI_WALLET_DISPERSE
+  DYNAMIC_SWAP_FEE
+  PERMANENT_LP_LOCK
+  CREATOR_FEE_SPLIT
+}
+
+model User {
+  id        BigInt            @id
+  username  String?
+  firstName String?
+  platform  LaunchpadPlatform @default(pangea)
+  isBlocked Boolean           @default(false)
+  createdAt DateTime          @default(now())
+
+  wallet    Wallet?
+  launches  TokenLaunch[]
+  feeClaims FeeClaim[]
+
+  @@map("users")
+}
+
+model Wallet {
+  id           String   @id @default(uuid())
+  userId       BigInt   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address      String   @unique
+  encryptedKey String   // AES-256-GCM (iv:tag:ciphertext)
+  createdAt    DateTime @default(now())
+
+  @@map("wallets")
+}
+
+model TokenLaunch {
+  id                   String            @id @default(uuid())
+  userId               BigInt
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenAddress         String            @unique
+  poolAddress          String            // Uniswap V4 PoolId (bytes32) or pool address
+  platform             LaunchpadPlatform @default(pangea)
+  hookProfile          HookProfile       @default(OMNICHAIN_OFT_V4)
+  name                 String
+  symbol               String
+  description          String?
+  imageUrl             String?
+  quoteTokenSymbol     String            // e.g. WETH, USDC, NVDAx, TSLAx, SPYx
+  quoteAddress         String
+  initialBuyEth        Decimal           @default(0)
+  disperseWalletsCount Int               @default(0)
+  creatorAddress       String
+  txHash               String            @unique
+  blockNumber          BigInt
+  createdAt            DateTime          @default(now())
+
+  feeClaims            FeeClaim[]
+
+  @@index([createdAt(sort: Desc)])
+  @@index([platform])
+  @@map("token_launches")
+}
+
+model FeeClaim {
+  id            String      @id @default(uuid())
+  userId        BigInt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenAddress  String
+  token         TokenLaunch @relation(fields: [tokenAddress], references: [tokenAddress], onDelete: Cascade)
+  amountClaimed Decimal
+  quoteSymbol   String
+  txHash        String      @unique
+  createdAt     DateTime    @default(now())
+
+  @@map("fee_claims")
+}

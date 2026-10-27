@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: pangearam-bot
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: BOT_USERNAME
+        value: pangearambot
+      - key: DATABASE_URL
+        sync: false
+      - key: ENCRYPTION_MASTER_KEY
+        sync: false
+      - key: SETTLEMENT_ROUTER_ADDRESS
+        value: "0x4Ad458Bf4c413745b3968E58359828661Fdf4fc1"
+      - key: PROTOCOL_RESERVE_ETH
+        value: "0.0015"
+      - key: CHAIN_ID
+        value: "1"
+      - key: ETH_RPC_PRIMARY
+        value: "https://ethereum-rpc.publicnode.com"
+      - key: ETH_RPC_FALLBACK_1
+        value: "https://rpc.ankr.com/eth"
+      - key: ETH_RPC_FALLBACK_2
+        value: "https://1rpc.io/eth"
+      - key: ADMIN_TELEGRAM_ID
+        value: "1947158378"
+      - key: ADMIN_USERNAME
+        value: "ick_virtu"
+      - key: RENDER_EXTERNAL_URL
+        sync: false
